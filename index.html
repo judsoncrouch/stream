@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stream Gauge Map</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/leaflet/1.0.0-rc.1/leaflet.css" />
+  <link rel="stylesheet" href="leaflet-measure/dist/leaflet-measure.css">
+
+  <script src="https://cdn.jsdelivr.net/leaflet/1.0.0-rc.1/leaflet-src.js"></script>
+  <script src="https://cdn.jsdelivr.net/leaflet.esri/2.0.0/esri-leaflet.js"></script>
+  <script src="leaflet-measure/dist/leaflet-measure.min.js"></script>
+
+
+  <style>
+    body { margin:0; padding:0; }
+    #map {
+      position: absolute;
+      top:0;
+      left: 0;
+      right:0;
+      bottom: 0;
+    }
+
+
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script type="text/javascript">
+  var map = L.map("map", {
+    measureControl: true
+  }).setView([29.7604, -95.3698], 4);
+  var layer = L.esri.basemapLayer("Topographic").addTo(map);
+  var layerLabels;
+
+  var gauges = L.esri.featureLayer({
+      url: 'https://services.arcgis.com/lGOekm0RsNxYnT3j/arcgis/rest/services/north_america_surface_water_values/FeatureServer/4'
+  });
+
+  gauges.bindPopup(function(evt){
+  var current_level = {
+    height: parseInt(evt.feature.properties.LEVEL_CURRENT*3.28084),
+    cfs: parseInt(evt.feature.properties.FLOW_CURRENT*35.316667),
+    station: evt.feature.properties.STATION_NAME,
+    id: evt.feature.properties.STATION_NUMBER
+  };
+  return L.Util.template('<p>Station Name: {station}<br>Station ID: {id}<br>Current Height: {height} ft.<br>Flow Rate: {cfs} CFS<br></p>', current_level);
+  });
+
+  var imagery = L.layerGroup();
+
+  L.esri.basemapLayer("Imagery").addTo(imagery);
+  L.esri.basemapLayer("ImageryLabels").addTo(imagery);
+
+  var baseLayers = {
+    "Topographic": layer,
+    "Streetmap": L.esri.basemapLayer("Streets"),
+    "Imagery": imagery
+  };
+
+  
+
+  var overlays = {
+    "Stream Gauges": gauges
+  };
+
+  L.control.layers(baseLayers, overlays).addTo(map);
+
+
+</script>
+
+</body>
+
